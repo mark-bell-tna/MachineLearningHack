@@ -1,0 +1,392 @@
+---
+title: "Machine Learning"
+author: "Mark Bell"
+date: "7 November 2017"
+output:
+  ioslides_presentation:
+    self_contained: yes
+    widescreen: no
+    theme: flatly
+    mathjax: null
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(shiny)
+library(ggplot2)
+library(rpart.plot)
+library(scales)
+library(dummies)
+library(shiny)
+library(rpart)
+library(dotwhisker)
+library(rpart.plot)
+library(neuralnet)
+library(e1071)
+library(class)
+library(kknn)
+library(knitr)
+library(httpuv)
+library(dplyr)
+library(tidyr)
+library(tidytext)
+library(gutenbergr)
+library(stringr)
+library(ElemStatLearn)
+require(class)
+
+data("ptitanic")
+
+titles <- c("Twenty Thousand Leagues under the Sea", "The War of the Worlds",
+            "Pride and Prejudice", "Great Expectations")
+
+books <- gutenberg_works(title %in% titles) %>%
+  gutenberg_download(meta_fields = "title")
+
+
+```
+
+```{css}
+slide {
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+}
+```
+
+```{r deps,include=FALSE}
+# this ensures jquery is loaded
+dep <- htmltools::htmlDependency(name = "jquery", version = "1.11.3", src = system.file("rmd/h/jquery-1.11.3", package='rmarkdown'), script = "jquery.min.js")
+htmltools::attachDependencies(htmltools::tags$span(''), dep)
+```
+
+```{js move-id-background-color}
+$(document).ready(function(){
+    // for every article tag inside a slide tag
+    $("slide > article").each(function(){
+        // copy the article name to the parentNode's (the slide) ID
+        this.parentNode.id=$(this).attr('name');
+    });
+});
+```
+
+```{r background-function,include=FALSE}
+makeBG <- function(id, file)
+{
+    cat(
+        sprintf('<style type="text/css">\n#%s {\nbackground-image: url(%s);\n}\n</style>',
+                id, knitr::image_uri(file))
+    )
+}
+```
+
+##   {.SlideClass #SlideID name=ThisSlide}
+
+```{r results='asis',echo=FALSE}
+makeBG(id='ThisSlide', 'Images/ml_hackathon.png')
+```
+
+## This session
+
+- Introduction
+- Machine Learning
+- Datasets
+- Logistics
+- Teams
+- Projects
+
+# Hackathon
+
+## About The Hackathon
+
+> - 7th and 8th December - Conference Room A
+> - Introduce ML Techniques
+> - A chance to play and experiment
+> - (Hopefully) Have some fun
+> - Learn something
+> - Generate ideas for the future
+
+## Pre-requisites
+
+> - Laptops
+> - ...
+
+# Machine Learning
+
+## What is machine learning? {.build}
+
+Machine learning is a field of computer science that gives computers the ability to learn without being explicitly programmed – Andrew Ng, Stanford
+
+```{r, eval = FALSE, hilang = 'python', echo=TRUE}
+if speed > 20 and groundWet and probJuggernautOncoming > 0.7:
+    if cliffEdgeLeft:
+        if cliffEdgeRight:
+            eject()
+        else:
+            swerveLeft(handbreak = True)
+    else:
+        swerveRight()
+```
+
+## What is machine learning? (contd.)
+
+Machine learning is a form of artificial intelligence that allows computer systems to learn from examples, data, and experience. Through enabling computers to perform specific tasks intelligently, machine learning systems can carry out complex processes by learning from data, rather than following pre-programmed rules. – Royal Society, Machine Learning Report
+
+https://royalsociety.org/topics-policy/projects/machine-learning/
+
+
+## {.SlideClass #SlideID name=Perceptions}
+
+```{r results='asis',echo=FALSE}
+makeBG(id='Perceptions', 'Images/ml_perceptions.png')
+```
+
+## Examples
+
+```{r ml_examples}
+shinyAppDir(
+  "ml_examples\\",
+  options=list(
+    width="100%", height=700
+  )
+)
+```
+
+## {.SlideClass #SlideID name=WalkRun}
+
+```{r results='asis',echo=FALSE}
+makeBG(id='WalkRun', 'Images/walk_before_run.jpg')
+```
+
+# Classification Algorithms
+
+## Supervised Learning {.build}
+
+- Take labelled data (already classified)
+- Extract features from the data
+- Train a model using the feature and labels
+- Use the model to predict labels for new data
+
+
+## Titanic Survivors
+
+```{r titanic_data}
+kable(head(ptitanic,7))
+```
+
+
+## Titanic Visualisation
+
+```{r visualise_titanic, echo=FALSE}
+shinyAppDir(
+  "TitanicVis\\",
+  options=list(
+    width="100%", height=700
+  )
+)
+```
+
+## Making Predictions
+
+```{r predict_titanic, echo=FALSE}
+shinyAppDir(
+  "Classification\\",
+  options=list(
+    width="100%", height=700
+  )
+)
+```
+
+## K Nearest Neighbours
+
+```{r knn_demo}
+
+#Define UI for application that draws a histogram
+shinyAppDir(
+  "KNN_demo\\",
+  options=list(
+    width="100%", height=700
+  )
+)
+
+```
+
+##
+
+```{r overfit}
+
+shinyAppDir(
+  "Overfitting\\",
+  options=list(
+    width="100%", height=700
+  )
+)
+
+```
+
+
+## Unsupervised Learning {.build}
+
+- Take data with unknown classifications
+- Extract features from the data
+- Run an algorithm to identify classes
+
+## Iris Data Set
+
+```{r iris_data}
+data("iris")
+kable(head(iris))
+```
+
+
+## Working with text {.build}
+
+- Text is unstructured
+- Comes in large quantities
+- And...
+- It is text, not numerical
+- It needs to be made numerical
+
+## Matrix Representation of Text
+
+```{r tfidf_example, echo=FALSE, warning=FALSE}
+shinyAppDir(
+  "TFIDF_demo\\",
+  options=list(
+    width="100%", height=700
+  )
+)
+```
+
+## Document Classification {.build}
+
+- Take four well known books:
+
+```{r show_books}
+titles <- c("Twenty Thousand Leagues under the Sea", "The War of the Worlds",
+            "Pride and Prejudice", "Great Expectations")
+
+books <- gutenberg_works(title %in% titles) %>%
+  gutenberg_download(meta_fields = "title")
+
+data.frame(Title = titles)
+```
+
+- Split into chapters
+- Predict which book a chapter came from
+
+
+## Naive Bayes Approach
+
+```{r naivebayes_books, echo=FALSE, warning=FALSE}
+shinyAppDir(
+  "NaiveBayes_demo\\",
+  options=list(
+    width="100%", height=700
+  )
+)
+```
+
+## What if....? {.build}
+
+- We have no training data
+- Not sure what we do have
+- Can we analyze the text...
+- ...and group by vocabulary?
+- Yes!
+- Or this slide would be an anti-climax
+- Use Topic Modelling
+- Latent Dirichlet Allocation
+
+## Topic Modelling
+
+```{r lda_books, echo=FALSE, warning=FALSE}
+shinyAppDir(
+  "LDA_demo\\",
+  options=list(
+    width="100%", height=700
+  )
+)
+```
+
+## Kmeans Clustering
+
+```{r kmeans}
+
+renderPlot({
+    kc1<-kmeans(iris[,c(2,3)],3)
+iris$cluster <- as.factor(kc1$cluster)
+ggplot(iris, aes(Petal.Length, Petal.Width, color = cluster, shape = Species)) +
+  geom_point() + ggtitle("2 Variables")
+})
+
+```
+
+# Machine Learning End to End
+
+## Data Preparation {.build}
+
+- Convert data into numeric form
+- Scale data
+
+$$ scaled\_value = \frac{value - col\_min}{col\_max - col\_min} $$
+
+- Split into Training, Validation, and Test datasets
+- Train the model with Training
+- Check accuracy with Validation
+- Iterate until happy
+- Check accuracy with Test
+- Report accuracy
+- Do not go back!
+
+## Validation data set {.build}
+
+- How do we create a good representative validation set?
+- Can randomly split the data as on previous slide
+- Training data is expensive so we limit the size of the validation set
+- The validation set may not be fully representative
+- We may also overfit against the training set
+- What if we could generate several validation sets?
+
+- Cross Validation...
+
+## Cross Validation
+
+- Create 5 (or 10) Train/Validation datasets
+- Train and test the model against each of them
+- Model accuracy is average across all tests
+- All training data is used
+- Danger of overfitting is reduced
+
+## Cross Validation
+
+```{r results='asis',echo=FALSE}
+makeBG(id='XValidation', 'Images/K-fold_cross_validation_EN.jpg')
+```
+
+# Machine Learning Tools
+
+## Thank goodness for Open Source!
+
+```{r ml_algorithms,eval=FALSE, hilang = 'r', echo=TRUE}
+
+model <- survived~gender+age+pclass
+
+ml <- rpart(model, data, method = "class",
+      control = rpart.control(minbucket = 20))
+
+ml <- glm(model, data = data, family = 'binomial')
+
+ml <- neuralnet(model, data = data, hidden = c(10,5), linear.output = T,
+          stepmax=1e6, threshold = 0.1)
+
+ml <- svm(model, data = data, type = 'C-classification', kernel = 'sigmoid')
+
+ml <- naiveBayes(model, data)
+
+ml <- knn(training$features, test$features, training$target, k = 3)
+
+predict(ml, test, response = "class")
+
+```

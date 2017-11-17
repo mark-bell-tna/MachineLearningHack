@@ -4,10 +4,9 @@ author: "Mark Bell"
 date: "7 November 2017"
 output:
   ioslides_presentation:
-    self_contained: yes
-    widescreen: no
-    theme: flatly
-    mathjax: null
+    incremental: yes
+    theme: journal
+    widescreen: true
 runtime: shiny
 ---
 
@@ -100,17 +99,17 @@ makeBG(id='ThisSlide', 'Images/ml_hackathon.png')
 
 ## About The Hackathon
 
-> - 7th and 8th December - Conference Room A
-> - Introduce ML Techniques
-> - A chance to play and experiment
-> - (Hopefully) Have some fun
-> - Learn something
-> - Generate ideas for the future
+- 7th and 8th December - Conference Room A
+- Introduce ML Techniques
+- A chance to play and experiment
+- (Hopefully) Have some fun
+- Learn something
+- Generate ideas for the future
 
 ## Pre-requisites
 
-> - Laptops
-> - ...
+- Laptops
+- ...
 
 # Machine Learning
 
@@ -146,7 +145,7 @@ makeBG(id='Perceptions', 'Images/ml_perceptions.png')
 
 ```{r ml_examples}
 shinyAppDir(
-  "ml_examples\\",
+  "ml_examples//",
   options=list(
     width="100%", height=700
   )
@@ -180,9 +179,9 @@ kable(head(ptitanic,7))
 
 ```{r visualise_titanic, echo=FALSE}
 shinyAppDir(
-  "TitanicVis\\",
+  "TitanicVis//",
   options=list(
-    width="100%", height=700
+    width="100%", height=600
   )
 )
 ```
@@ -191,9 +190,9 @@ shinyAppDir(
 
 ```{r predict_titanic, echo=FALSE}
 shinyAppDir(
-  "Classification\\",
+  "Classification//",
   options=list(
-    width="100%", height=700
+    height="100%"
   )
 )
 ```
@@ -204,9 +203,9 @@ shinyAppDir(
 
 #Define UI for application that draws a histogram
 shinyAppDir(
-  "KNN_demo\\",
+  "KNN_demo//",
   options=list(
-    width="100%", height=700
+    height=600
   )
 )
 
@@ -217,7 +216,7 @@ shinyAppDir(
 ```{r overfit}
 
 shinyAppDir(
-  "Overfitting\\",
+  "Overfitting//",
   options=list(
     width="100%", height=700
   )
@@ -225,19 +224,6 @@ shinyAppDir(
 
 ```
 
-
-## Unsupervised Learning {.build}
-
-- Take data with unknown classifications
-- Extract features from the data
-- Run an algorithm to identify classes
-
-## Iris Data Set
-
-```{r iris_data}
-data("iris")
-kable(head(iris))
-```
 
 
 ## Working with text {.build}
@@ -252,7 +238,7 @@ kable(head(iris))
 
 ```{r tfidf_example, echo=FALSE, warning=FALSE}
 shinyAppDir(
-  "TFIDF_demo\\",
+  "TFIDF_demo//",
   options=list(
     width="100%", height=700
   )
@@ -281,14 +267,14 @@ data.frame(Title = titles)
 
 ```{r naivebayes_books, echo=FALSE, warning=FALSE}
 shinyAppDir(
-  "NaiveBayes_demo\\",
-  options=list(
-    width="100%", height=700
-  )
+ "NaiveBayes_demo//",
+ options=list(
+   width="100%", height=700
+ )
 )
 ```
 
-## What if....? {.build}
+## What if....?
 
 - We have no training data
 - Not sure what we do have
@@ -299,15 +285,29 @@ shinyAppDir(
 - Use Topic Modelling
 - Latent Dirichlet Allocation
 
+
 ## Topic Modelling
 
 ```{r lda_books, echo=FALSE, warning=FALSE}
 shinyAppDir(
-  "LDA_demo\\",
+  "LDA_demo//",
   options=list(
     width="100%", height=700
   )
 )
+```
+
+## Unsupervised Learning {.build}
+
+- Take data with unknown classifications
+- Extract features from the data
+- Run an algorithm to identify classes
+
+## Iris Data Set
+
+```{r iris_data}
+data("iris")
+kable(head(iris))
 ```
 
 ## Kmeans Clustering
@@ -315,7 +315,7 @@ shinyAppDir(
 ```{r kmeans}
 
 renderPlot({
-    kc1<-kmeans(iris[,c(2,3)],3)
+    kc1<-kmeans(iris[,c(3,4)],3)
 iris$cluster <- as.factor(kc1$cluster)
 ggplot(iris, aes(Petal.Length, Petal.Width, color = cluster, shape = Species)) +
   geom_point() + ggtitle("2 Variables")
@@ -325,13 +325,10 @@ ggplot(iris, aes(Petal.Length, Petal.Width, color = cluster, shape = Species)) +
 
 # Machine Learning End to End
 
-## Data Preparation {.build}
+## Data Preparation
 
 - Convert data into numeric form
 - Scale data
-
-$$ scaled\_value = \frac{value - col\_min}{col\_max - col\_min} $$
-
 - Split into Training, Validation, and Test datasets
 - Train the model with Training
 - Check accuracy with Validation
@@ -340,13 +337,51 @@ $$ scaled\_value = \frac{value - col\_min}{col\_max - col\_min} $$
 - Report accuracy
 - Do not go back!
 
+## Scaling
+
+$$ scaled\_value = \frac{value - col\_min}{col\_max - col\_min} $$
+```{r scaling, echo=FALSE}
+
+z <- matrix(rbind(c(1,2,3),c(3,5,7)), ncol = 2)
+z2 <- z
+
+colmin <- apply(z,2,min)
+colmax <- apply(z,2,max)
+
+z[,1] <- z[,1] - colmin[1]
+z[,2] <- z[,2] - colmin[2]
+coldiff <- colmax - colmin
+z[,1] <- z[,1] / coldiff[1]
+z[,2] <- z[,2] / coldiff[2]
+
+
+mainPanel(
+  tabsetPanel(
+    tabPanel("Original",
+             tableOutput("original")
+             ),
+    tabPanel("Scaled",
+             tableOutput("scaled")
+             )
+  )
+)
+
+output$original <- renderTable({
+  data.frame(z2)
+})
+
+output$scaled <- renderTable({
+  data.frame(z)
+})
+
+```
+
 ## Validation data set {.build}
 
 - How do we create a good representative validation set?
-- Can randomly split the data as on previous slide
+- Can randomly split the data as before
 - Training data is expensive so we limit the size of the validation set
-- The validation set may not be fully representative
-- We may also overfit against the training set
+- We may also overfit against the training/validation set
 - What if we could generate several validation sets?
 
 - Cross Validation...
@@ -359,7 +394,7 @@ $$ scaled\_value = \frac{value - col\_min}{col\_max - col\_min} $$
 - All training data is used
 - Danger of overfitting is reduced
 
-## Cross Validation
+## {.SlideClass #SlideID name=XValidation}
 
 ```{r results='asis',echo=FALSE}
 makeBG(id='XValidation', 'Images/K-fold_cross_validation_EN.jpg')
@@ -390,3 +425,52 @@ ml <- knn(training$features, test$features, training$target, k = 3)
 predict(ml, test, response = "class")
 
 ```
+
+## Programming Libraries
+
+R - One library per model
+
+Python - Sci-kit Learn
+
+Keras - Deep Learning
+
+Weka - Java with GUI
+
+Azure ML - Drag and drop; Cloud
+
+Dataiku - User friendly
+
+Mallet - Topic Modelling
+
+# The Hackathon
+
+## Data
+
+- War Diaries
+- Old Weather
+- DROID Text files
+- Ministry of Labour PDFs
+- Legislation
+- NDAD Bovine TB
+- Discovery Web Searches
+- Cabinet Papers
+
+## Needed for the event
+
+>- Laptops
+>- Cloud computing
+>- Connectivity
+>- Budget
+- Template scripts
+- Guidance
+
+# Teams
+
+## Forming teams
+
+- Pick a dataset or ML genre
+- Balanced skill levels
+- Non-technical roles
+- A non-technical team
+
+## Thank you!

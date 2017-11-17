@@ -8,26 +8,27 @@
 #
 
 library(shiny)
+library(ggplot2)
 
 ui <- fluidPage(
   
-  # Application title
-  titlePanel("Overfitting Demo"),
-  
+
   # Sidebar with a slider input for number of bins 
   fluidPage(
-    inputPanel(
+    sidebarLayout(
+    sidebarPanel(
       #actionButton("go", "Go!")
       sliderInput("neighbours", "Degree", 1, 20, 1, step = 1, 
                   animate=animationOptions(interval=1000, loop = F,
                                            playButton = T, pauseButton = T))
       
-    ),
+    , width = 3),
     
     # Show a plot of the generated distribution
     mainPanel(
       plotOutput("distPlot"),
       textOutput("mse")
+    , width = 9)
     )
   )
 )

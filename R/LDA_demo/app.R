@@ -15,6 +15,7 @@ library(tidyr)
 library(e1071)
 library(ggplot2)
 library(topicmodels)
+library(shiny)
 
 titles <- c("Twenty Thousand Leagues under the Sea", "The War of the Worlds",
             "Pride and Prejudice", "Great Expectations")
@@ -23,7 +24,7 @@ titles <- c("Twenty Thousand Leagues under the Sea", "The War of the Worlds",
 #  gutenberg_download(meta_fields = "title")
 
 #saveRDS(books,"gutenberg_books.rds")
-books <- readRDS("gutenberg_books.rds")
+books <- readRDS("RDSfiles//gutenberg_books.rds")
 
 
 # divide into documents, each representing one chapter
@@ -62,8 +63,13 @@ book_words <- word_counts %>%
 chapters_dtm <- book_words %>%
   cast_dtm(document, word, n)
 
-chapters_lda_4 <- LDA(chapters_dtm, k = 4, control = list(seed = 1234))
-chapters_lda_9 <- LDA(chapters_dtm, k = 9, control = list(seed = 1234))
+#chapters_lda_4 <- LDA(chapters_dtm, k = 4, control = list(seed = 1234))
+#saveRDS(chapters_lda_4, 'R/LDA_demo/chapters_lda_4.rds')
+chapters_lda_4 <- readRDS('RDSfiles//chapters_lda_4.rds')
+#chapters_lda_9 <- LDA(chapters_dtm, k = 9, control = list(seed = 1234))
+#saveRDS(chapters_lda_9, 'R/LDA_demo/chapters_lda_9.rds')
+chapters_lda_9 <- readRDS('RDSfiles//chapters_lda_9.rds')
+
 
 chapter_topics_4 <- tidy(chapters_lda_4, matrix = "beta")
 chapter_topics_9 <- tidy(chapters_lda_9, matrix = "beta")
@@ -81,14 +87,11 @@ top_terms_9 <- chapter_topics_9 %>%
   arrange(topic, -beta)
 
 chapters_gamma <- tidy(chapters_lda_4, matrix = "gamma")
-chapters_gamma
+#chapters_gamma
 
 chapters_gamma <- chapters_gamma %>%
   separate(document, c("title", "chapter"), sep = "_", convert = TRUE)
 
-
-
-library(shiny)
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(

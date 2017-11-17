@@ -8,25 +8,25 @@
 #
 
 library(shiny)
+library(ElemStatLearn)
+library(class)
 
 ui <- fluidPage(
   
-  # Application title
-  titlePanel("Nearest Neighbours Demo"),
-  
-  # Sidebar with a slider input for number of bins 
   fluidPage(
-    inputPanel(
+    sidebarLayout(
+    sidebarPanel(
       #actionButton("go", "Go!")
       sliderInput("neighbours", "Neighbours", 1, 15, 1, step = 1, 
                   animate=animationOptions(interval=2000, loop = T,
                                            playButton = T, pauseButton = T))
       
-    ),
+    , width = 3),
     
     # Show a plot of the generated distribution
     mainPanel(
-      plotOutput("distPlot")
+      plotOutput("distPlot", height = 400, width = 500)
+    , width = 9)
     )
   )
 )

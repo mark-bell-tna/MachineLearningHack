@@ -22,7 +22,7 @@ titles <- c("Twenty Thousand Leagues under the Sea", "The War of the Worlds",
 #  gutenberg_download(meta_fields = "title")
 
 #saveRDS(books,"gutenberg_books.rds")
-books <- readRDS("gutenberg_books.rds")
+books <- readRDS("RDSfiles//gutenberg_books.rds")
 
 
 # divide into documents, each representing one chapter
@@ -102,11 +102,19 @@ training_data_tfidf <- chapters_tfidf_df[train_ind,]
 validation_data_tfidf <- chapters_tfidf_df[-train_ind,]
 
 
-model_counts <- naiveBayes(book ~ ., data = training_data_counts)
-model_tfidf <- naiveBayes(book ~ ., data = training_data_tfidf)
+#model_counts <- naiveBayes(book ~ ., data = training_data_counts)
+#saveRDS(model_counts, 'model_counts.rds')
+model_counts <- readRDS('RDSfiles//model_counts.rds')
+#model_tfidf <- naiveBayes(book ~ ., data = training_data_tfidf)
+#saveRDS(model_tfidf, 'model_tfidf.rds')
+model_tfidf <- readRDS('RDSfiles//model_tfidf.rds')
 
-pred_counts <- predict(model_counts, validation_data_counts)
-pred_tfidf <- predict(model_tfidf, validation_data_tfidf)
+#pred_counts <- predict(model_counts, validation_data_counts)
+#saveRDS(pred_counts, 'pred_counts.rds')
+pred_counts <- readRDS('RDSfiles//pred_counts.rds')
+#pred_tfidf <- predict(model_tfidf, validation_data_tfidf)
+#saveRDS(pred_tfidf, 'pred_tfidf.rds')
+pred_tfidf <- readRDS('RDSfiles//pred_tfidf.rds')
 
 ## Naive Bayes - Confusion Matrix
 

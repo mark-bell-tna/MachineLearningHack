@@ -1,4 +1,5 @@
 library(rpart.plot)
+library(shiny)
 
 data(ptitanic)
 #colnames(ptitanic)[which(names(ptitanic) == "sex")] <- "gender"
@@ -70,7 +71,9 @@ knn_wrap <- function(model, data, algo_args, prob=FALSE) {
       data[,predict_col], k = algo_args$neighbours, prob = prob)
 }
 
-ui <- fluidPage(inputPanel(
+ui <- fluidPage(
+  sidebarLayout(
+    sidebarPanel(
   selectInput("algorithm", label = "Algorithm:",
               choices = c("Decision Tree" = "decision", "Logistic" = "logistic",
                           "K Nearest Neighbours" = "knn",
@@ -90,7 +93,7 @@ ui <- fluidPage(inputPanel(
               selectize = TRUE, multiple = TRUE),
   textInput("algo_params", "Parameters"),
   actionButton("do", label = "Run"),
-  actionButton("secret", label = "?")),
+  actionButton("secret", label = "?"),
   selectInput("training_set", label = "Training Data:",
               choice = c("All" = "all_titanic", "Training" = "training_set",
                          "Validation" = "validation_set"),
@@ -98,10 +101,13 @@ ui <- fluidPage(inputPanel(
   selectInput("validation_set", label = "Validation Data:",
               choice = c("All" = "all_titanic", "Training" = "training_set",
                          "Validation" = "validation_set"),
-              selected = "all_titanic", selectize = TRUE),
+              selected = "all_titanic", selectize = TRUE)
+  ,width = 3),
+  mainPanel(
   textOutput("accuracy"),
   plotOutput("plot"),
   tableOutput("evaluation")
+  , width = 9))
 )
 
 server <- function(input, output, session) {

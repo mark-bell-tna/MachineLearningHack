@@ -290,8 +290,9 @@ server <- function(input, output, session) {
         s_row <- algo_fit$tables[[feature_cols[i]]]["survived",]
         max_col <- which(s_row == max(s_row))
         col_name <- names(max_col)
-        
+        print(col_name)
         feature_pct <- as.numeric(s_row[max_col])
+        feature_pct <- as.integer(feature_pct*1000)/1000
         gr_def <-paste(gr_def, " ", letters[i],
                        " [label = '", feature_cols[i], " \n(",
                        col_name, "=",feature_pct , ")'] ", sep = '')

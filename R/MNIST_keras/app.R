@@ -81,7 +81,7 @@ server <- function(input, output) {
    })
    
    output$matrix <- renderTable({
-     t(mat1[10:22,3:15])
+     t(mnist$train$x[3,10:22,3:15])
    })
    
    output$labels <- renderTable({

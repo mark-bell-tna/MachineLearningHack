@@ -8,6 +8,8 @@
 #
 
 library(shiny)
+library(dplyr)
+library(tidytext)
 
 dtm <- matrix(0L, nrow = 5, ncol = 7)
 dimnames(dtm) = list(c("A","B","C","D","E"),

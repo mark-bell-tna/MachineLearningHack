@@ -147,7 +147,7 @@ ui <- fluidPage(
          plotOutput("tfidf")
       ),
       tabPanel("Confusion by count",
-         plotOutput("confusion_counts")
+         verbatimTextOutput("confusion_counts")
       ),
       tabPanel("Confusion by tfidf",
                plotOutput("confusion_tfidf"))
@@ -167,7 +167,7 @@ server <- function(input, output) {
    }))
    
    output$matrix <- renderTable({
-     head(data.frame(training_data[, c("elizabeth", "darcy", "martians", "nemo", "pip")]),10)
+     head(data.frame(training_data_counts[, c("elizabeth", "darcy", "martians", "nemo", "pip")]),10)
    }, rownames = TRUE, digits = 4)
    
    output$tfidf <- renderPlot({
@@ -186,15 +186,16 @@ server <- function(input, output) {
        coord_flip()
    })
    
-   output$confusion_counts <- renderPlot({
+   output$confusion_counts <- renderPrint({
      
-     confusion_plot_counts <- ggplot(data.frame(confusion_counts))
-     confusion_plot_counts + geom_tile(aes(x=pred, y=true, fill=Freq)) + 
-       scale_x_discrete(name="Actual Class") +
-       scale_y_discrete(name="Predicted Class") +
-       scale_fill_gradient(breaks=seq(from=0, to=50, by=5),
-                           high = "red", low = "yellow") +
-       labs(fill="Normalized\nFrequency")
+     as.matrix(confusion_counts)
+     #confusion_plot_counts <- ggplot(data.frame(confusion_counts))
+     #confusion_plot_counts + geom_tile(aes(x=pred, y=true, fill=Freq)) + 
+    #   scale_x_discrete(name="Actual Class") +
+    #   scale_y_discrete(name="Predicted Class") +
+    #   scale_fill_gradient(breaks=seq(from=0, to=50, by=5),
+    #                       high = "red", low = "yellow") +
+    #   labs(fill="Normalized\nFrequency")
      
    })
    

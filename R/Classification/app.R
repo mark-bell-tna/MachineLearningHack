@@ -1,4 +1,11 @@
 library(rpart.plot)
+library(shiny)
+library(dotwhisker)
+library(kknn)
+library(class)
+library(e1071)
+library(neuralnet)
+library(DiagrammeR)
 
 data(ptitanic)
 #colnames(ptitanic)[which(names(ptitanic) == "sex")] <- "gender"
@@ -29,8 +36,10 @@ validation_set <- main_titanic[-train_ind, ]
 
 
 rpart_wrap <- function(model, data, algo_args) {
-  rpart(model, data, method = algo_args$method,
-        control = rpart.control(minbucket = algo_args$minsplit))
+  rpart(model, data, method = "class",
+        control = rpart.control(minsplit = algo_args$minsplit,
+                                minbucket = algo_args$minsplit,
+                                cp = algo_args$cp))
 }
 
 logit_wrap <- function(model, data, algo_args) {
@@ -70,7 +79,12 @@ knn_wrap <- function(model, data, algo_args, prob=FALSE) {
       data[,predict_col], k = algo_args$neighbours, prob = prob)
 }
 
-ui <- fluidPage(inputPanel(
+
+
+
+ui <- fluidPage(
+  sidebarLayout(
+    sidebarPanel(
   selectInput("algorithm", label = "Algorithm:",
               choices = c("Decision Tree" = "decision", "Logistic" = "logistic",
                           "K Nearest Neighbours" = "knn",
@@ -90,7 +104,7 @@ ui <- fluidPage(inputPanel(
               selectize = TRUE, multiple = TRUE),
   textInput("algo_params", "Parameters"),
   actionButton("do", label = "Run"),
-  actionButton("secret", label = "?")),
+  actionButton("secret", label = "?"),
   selectInput("training_set", label = "Training Data:",
               choice = c("All" = "all_titanic", "Training" = "training_set",
                          "Validation" = "validation_set"),
@@ -98,11 +112,26 @@ ui <- fluidPage(inputPanel(
   selectInput("validation_set", label = "Validation Data:",
               choice = c("All" = "all_titanic", "Training" = "training_set",
                          "Validation" = "validation_set"),
-              selected = "all_titanic", selectize = TRUE),
-  textOutput("accuracy"),
-  plotOutput("plot"),
-  tableOutput("evaluation")
-)
+              selected = "all_titanic", selectize = TRUE)
+  ,width = 3),
+  mainPanel(
+  tabsetPanel(
+    tabPanel("Plot",
+             textOutput("accuracy"),
+             plotOutput("plot"),
+            tableOutput("evaluation")
+    ),
+    tabPanel("Plot",
+             textOutput("accuracy2"),
+             grVizOutput("plot2"),
+             tableOutput("evaluation2")))
+  )
+  #tabsetPanel(tabPanel("Plot",
+  #            plotOutput("plot")),
+  #tabPanel("B", plotOutput("plot"))),
+  #plotOutput("plot"),
+  #, width = 9))
+))
 
 server <- function(input, output, session) {
   v <- reactiveValues(algo = NULL, model = NULL)
@@ -118,6 +147,25 @@ server <- function(input, output, session) {
     updateSelectInput(session, "validation_set", label = "Validation Data:",
                       choice = c("All" = "all_titanic", "Training" = "training_set",
                                  "Validation" = "validation_set", "Test" = "secret_test"))
+  })
+  
+  observeEvent(input$algorithm, {
+    algo <- input$algorithm
+    if (algo == "decision") {
+      param_value <- "50 10 0.01"
+    } else if (algo == "knn") {
+      param_value <- 3
+    } else if (algo == "neural") {
+      param_value <- 5
+    } else if (algo == "svm") {
+      param_value <- "sigmoid"
+    } else if (algo == "logistic") {
+      param_value <- "binomial"
+    } else {
+      param_value <- ""
+    }
+    updateTextInput(session, "algo_params", label = "Parameters",
+                    value = param_value)
   })
   
   observeEvent(input$do, {
@@ -187,34 +235,78 @@ server <- function(input, output, session) {
     print(model)
     print(head(training,1))
     algo_fit <<- algo(model, data = training, algo_args = algo_args)
-    print("End Algo")
+    print(paste0("End Algo:", Sys.time()))
     
     print(paste0("ALGO:",algorithm))
     if (algorithm == "neural") {
       print("IS NEURAL")
-      prediction <- compute(algo_fit, validation[,feature_cols])
+      prediction <- neuralnet::compute(algo_fit, validation[,feature_cols])
       prediction <- as.integer(prediction$net.result >= 0.5)
     } else if (algorithm == "knn") {
       prediction <- algo_fit
     } else if (algorithm == "svm") {
-      prediction <- predict(algo_fit, data = validation,
+      print(head(validation,1))
+      prediction <- predict(algo_fit, newdata = validation[,feature_cols],
                             type = algo_args$predict_type)
+      print(paste0("PREDICTION", length(prediction)))
     } else {
       print(paste0("PREDICTION", algo_args$predict_type))
+      
       prediction <- predict(algo_fit, validation,  algo_args$predict_type)
     }
     if (algorithm == "logistic") {
       prediction <- as.integer(prediction >= 0.5)
     }
+    print(head(validation,1))
+    print(paste0("With:", predict_col, "Preds:", length(prediction),
+                 "rows:",nrow(validation[validation[,predict_col] == prediction,])))
+    print(head(validation[,predict_col],1))
     v$text1 <- sprintf("Model Accuracy: %2.5f",
                        nrow(validation[validation[,predict_col] == prediction,])/nrow(validation))
     
     print(paste0("Accuracy", v$text1))
-    algo_table <<- table(validation$survived, prediction)
+    #algo_table <<- table(validation$survived, prediction)
   })
   
   output$accuracy <- renderText({
     v$text1
+  })
+
+  output$accuracy2 <- renderText({
+    v$text1
+  })
+  
+  output$plot2 <- renderGrViz({
+    v$text1
+    if (is.null(algo_fit)) {
+      return()
+    }
+    if (algorithm == "bayes") {
+      letters <- c('b','c','d','e','f','g')
+      nb <- algo_fit
+      gr_def <- "digraph { node [fontname = Helvetica] a [label = 'survived']"
+      for (i in 1:length(feature_cols))
+      {
+        s_row <- algo_fit$tables[[feature_cols[i]]]["survived",]
+        max_col <- which(s_row == max(s_row))
+        col_name <- names(max_col)
+        print(col_name)
+        feature_pct <- as.numeric(s_row[max_col])
+        feature_pct <- as.integer(feature_pct*1000)/1000
+        gr_def <-paste(gr_def, " ", letters[i],
+                       " [label = '", feature_cols[i], " \n(",
+                       col_name, "=",feature_pct , ")'] ", sep = '')
+      }
+      gr_def <- paste(gr_def, " a -> {")
+      
+      for (i in 1:length(feature_cols)) {
+        gr_def <- paste(gr_def, letters[i])
+      }
+      gr_def <- paste0(gr_def, "}}")
+      
+      grViz(gr_def)
+      
+    }
   })
   
   output$plot <- renderPlot({
@@ -247,8 +339,6 @@ server <- function(input, output, session) {
     } else if (algorithm == "knn") {
       tk <- train.kknn(model, training)
       plot(tk)
-    } else if (algorithm == "bayes") {
-      plot(rnorm(1,20))
     } else if (algorithm == "svm") {
       vis_cols <- eval(parse(text=paste(feature_cols[1:2], collapse="~")))
       plot(algo_fit, data = training, formula = vis_cols)
@@ -263,6 +353,10 @@ server <- function(input, output, session) {
     algo_table
   })
   
+  output$evaluation2 <- renderTable({
+    v$text1
+    algo_table
+  })
 }
 
 shinyApp(ui, server)

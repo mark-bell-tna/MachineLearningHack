@@ -1,0 +1,123 @@
+---
+title: "Untitled"
+runtime: shiny
+output: 
+  ioslides_presentation: 
+    widescreen: yes
+---
+
+```{r setup1, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(shiny)
+library(httpuv)
+library(knitr)
+library(ggplot2)
+```
+
+```{css}
+slide {
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+}
+```
+
+```{r deps,include=FALSE}
+# this ensures jquery is loaded
+dep <- htmltools::htmlDependency(name = "jquery", version = "1.11.3", src = system.file("rmd/h/jquery-1.11.3", package='rmarkdown'), script = "jquery.min.js")
+htmltools::attachDependencies(htmltools::tags$span(''), dep)
+```
+
+```{js move-id-background-color}
+$(document).ready(function(){
+    // for every article tag inside a slide tag
+    $("slide > article").each(function(){
+        // copy the article name to the parentNode's (the slide) ID
+        this.parentNode.id=$(this).attr('name');
+    });
+});
+```
+
+```{r background-function,include=FALSE}
+makeBG <- function(id, file)
+{
+    cat(
+        sprintf('<style type="text/css">\n#%s {\nbackground-image: url(%s);\n}\n</style>',
+                id, knitr::image_uri(file))
+    )
+}
+```
+
+## {.SlideClass #SlideID name=XValidation}
+
+```{r results='asis',echo=FALSE}
+makeBG(id='XValidation', 'Images/K-fold_cross_validation_EN.jpg')
+```
+
+
+## K Nearest Neighbours
+
+```{r knn_demo}
+
+#Define UI for application that draws a histogram
+shinyAppDir(
+  "Classification//",
+  options=list(
+    height=400, width = "100%"
+  )
+)
+
+```
+
+## Scaling
+
+$$ scaled\_value = \frac{value - col\_min}{col\_max - col\_min} $$
+```{r scaling, echo=FALSE}
+
+z <- matrix(rbind(c(1,2,3),c(3,5,7)), ncol = 2)
+z2 <- z
+
+colmin <- apply(z,2,min)
+colmax <- apply(z,2,max)
+
+z[,1] <- z[,1] - colmin[1]
+z[,2] <- z[,2] - colmin[2]
+coldiff <- colmax - colmin
+z[,1] <- z[,1] / coldiff[1]
+z[,2] <- z[,2] / coldiff[2]
+
+
+mainPanel(
+  tabsetPanel(
+    tabPanel("Original",
+             tableOutput("original")
+             ),
+    tabPanel("Scaled",
+             tableOutput("scaled")
+             )
+  )
+)
+
+output$original <- renderTable({
+  data.frame(z2)
+})
+
+output$scaled <- renderTable({
+  data.frame(z)
+})
+
+```
+
+## Bullets
+
+- Bullet 1
+- Bullet 2
+- Bullet 3
+
+## R Output
+
+```{r cars}
+summary(cars)
+```
+
+
